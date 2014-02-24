@@ -6,3 +6,13 @@ a total of 40 features.
 
 
 Report results for all the three folders of data.
+Run the file as 
+python <learn.py> <dir1> <dir2> <dir3>
+
+This code will train a linear kernel sklearn SVM classifier with the training data set in each of the provided directories 
+and then evaluate on the test sets provided in each of the corresponding directories.
+
+At the end, it prints out the most significant features in each of the directory being classified and reports the accuracy 
+of the classfication as a percentage.
+
+This is done under requirement of CSCE 670 Information retrieval course
