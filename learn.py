@@ -1,25 +1,22 @@
-import sys 
-import sklearn
-import cjson
-import networkx as nx
-import time
-import numpy as np
+##############################################################################
+#################### Author: Midhun Chinta ###################################
+#################### UIN   : 722005998     ###################################
+#################### Leaning to rank       ###################################
+##############################################################################
+
+from sklearn.cross_validation import KFold
+import sys
+import operator
+import itertools
 from scipy.sparse import *
 from sklearn import svm
 from sklearn import cross_validation
-from sklearn.cross_validation import KFold
-import numpy.matlib
-import operator
-import string
-import itertools
 
 trfend = '/train.txt'
 tefend = '/test.txt'
 resultf = open('result', 'w')
 num_of_features = 46
-clf = svm.SVC(C=1.0, kernel = 'linear')
-clf2 = svm.LinearSVC(C=1.0)
-clf3 = svm.LinearSVC(C=1.0)
+clf = svm.LinearSVC(C=30.0)
 ind = 0
 xtrlist = []
 ytrlist = []
@@ -86,7 +83,7 @@ def processtedocs(list_of_docs, list_of_rel):
 def train(dirname):
     global xtrlist
     global ytrlist
-    print 'train', dirname
+    print 'Training', dirname
     trfname = dirname+trfend
     trfile = open(trfname, 'r')
     set_of_queries = set()
@@ -112,6 +109,7 @@ def train(dirname):
         curr_list_of_docs.append(currdoc)
         curr_list_of_rel.append(int(words[0]))
     #all lines in trainind data set parsed: Now its time to learn
+    scores = cross_validation.cross_val_score(clf, xtrlist, ytrlist, cv=5)
     clf.fit(xtrlist, ytrlist)
     coeff = clf.coef_
     abscoeff = {}
@@ -121,12 +119,12 @@ def train(dirname):
         abscoeff[each] = abs(each)
         revmap[each] = index+1
         index = index+1
-    #print (coeff)
+    #print coeff
     sorted_results = sorted(abscoeff.iteritems(), key=operator.itemgetter(1), reverse = True)
     index = 0
     str1 = ''
     for val1, val2 in sorted_results:
-        str1 = str1+str(revmap[val1])+':'+str(val1)+'\t'
+        str1 = str1+str(revmap[val1])+':'+str(val1)+'\n'
         index = index+1
         if(index>10):
             break
@@ -138,7 +136,7 @@ def train(dirname):
 def test(dirname):
     global xtelist
     global ytelist
-    print 'test', dirname
+    print 'Testing ', dirname
     tefname = dirname+tefend
     tefile = open(tefname, 'r')
     set_of_queries = set()
@@ -168,19 +166,22 @@ def test(dirname):
     for each in range(len(predict)):
         if(predict[each] == ytelist[each]):
             corr = corr+1
-    #print 'correct manual', (1.0*corr)/(len(predict))
-    scores = cross_validation.cross_val_score(clf, xtelist, ytelist, cv=5)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    print 'Accuracy %.2f \n' % ((1.0*corr)/(len(predict)))
     xtelist = []
     ytelist = []
 
 #Process all the folders[train n test]
 def processall(argve):
+    print 'Using Linear SVC:'
     for index in range(len(argve)-1):
         train(argve[index+1])
         test(argve[index+1])
-        print argve[index+1], ' processed \n\n'
-        clf = svm.SVC(C=1.0, kernel = 'linear')
+        clf = svm.LinearSVC(C=30.0)
+    print '\n\n\nUsing SVC(kernel = Linear)'
+    for index in range(len(argve)-1):
+        clf = svm.SVC(C=30.0, kernel = 'linear')
+        train(argve[index+1])
+        test(argve[index+1])
     return
 
 def main(argv):
